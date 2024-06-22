@@ -9,6 +9,7 @@ import { postRequest, getRequest } from '../../serverconfiguration/requestcomp';
 function AddInfos() {
 
   const [employeegrp, setemployeegrp] = useState([]);
+  const[empgrp, setempgrp] = useState({});
   const[paympf, setpaympf] = useState([]);
   const[ShiftDetails, setshiftdetails ] = useState([]);
   const[paymVpf,setpaymVpf]  = useState([]);
@@ -86,6 +87,10 @@ function AddInfos() {
               "query" : `select * from Group_details`
       });
       setemployeegrp(data.data);
+      const empgrp = await postRequest(ServerConfig.url, REPORTS, {
+        "query" :`select * from employee_Group`
+      });
+      setempgrp(empgrp.data)
       const paympf = await getRequest(ServerConfig.url, PAYMPF)
       setpaympf(paympf.data)
       const shiftdetails = await getRequest(ServerConfig.url, SHIFTDETAILS)
@@ -96,7 +101,7 @@ function AddInfos() {
       setLeaveAllocationMaster(leaveAllocationMaster.data)
       const Esi = await getRequest(ServerConfig.url, PAYOUTPUTESI)
         setPayEsi(Esi.data)
-      console.log(payEsi)
+      console.log(empgrp)
     }
     getData();
     }, []);
@@ -116,6 +121,97 @@ function AddInfos() {
           alert("An error occurred: " + error.message);
         });
     }
+
+    const handlegroupsave = () => {
+      const processedGroupIds = new Set();
+    
+      empgrp.forEach(group => {
+        if (!processedGroupIds.has(group.groupid)) {
+          processedGroupIds.add(group.groupid);
+    
+          const query1 = `INSERT INTO paym_paybill (EmployeeCode, Earn_Amount, Ded_Amount, Act_Basic, Net_salary, Gross_salary, NetPay, Earned_Basic, max_amount, pn_CompanyID, pn_BranchID, pn_EmployeeID, Allowance1, value1, Allowance2, value2, Allowance3, value3, Allowance4, value4, Allowance5, value5, Allowance6, value6, Allowance7, value7, Allowance8, value8, Allowance9, value9, Allowance10, value10, Deduction1, valueA1, Deduction2, valueA2, Deduction3, valueA3, Deduction4, valueA4, Deduction5, valueA5, Deduction6, valueA6, Deduction7, valueA7, Deduction8, valueA8, Deduction9, valueA9, Deduction10, valueA10, Employee_First_Name, CompanyName, DesignationName, DepartmentName, GradeName, CategoryName, JoiningDate, d_date, EPF, FPF, period_code, ot_hrs, ot_value, ot_amt, Address_line1, Address_Line2, City, Zipcode)
+          SELECT eg.employee_code, gs.Earned_Amount, gs.Ded_Amount, gs.Basic_salary, gs.Net_salary, gs.Gross_salary, gs.NetPay, gs.Earned_Basic, gs.max_amount, pe.pn_CompanyID, pe.pn_BranchID, pe.pn_EmployeeID, gs.Allowance1, gs.Value1, gs.Allowance2, gs.value2, gs.Allowance3, gs.value3, gs.Allowance4, gs.Value4, gs.Allowance5, gs.Value5, gs.Allowance6, gs.Value6, gs.Allowance7, gs.value7, gs.Allowance8, gs.Value8, gs.Allowance9, gs.Value9, gs.Allowance10, gs.Value10, gs.Deduction1, gs.valueA1, gs.Deduction2, gs.valueA2, gs.Deduction3, gs.valueA3, gs.Deduction4, gs.valueA4, gs.Deduction5, gs.valueA5, gs.Deduction6, gs.valueA6, gs.Deduction7, gs.valueA7, gs.Deduction8, gs.valueA8, gs.Deduction9, gs.valueA9, gs.Deduction10, gs.valueA10, pe.Employee_First_Name, pc.CompanyName, pd.v_DesignationName, pde.v_DepartmentName, pg.v_GradeName, pca.v_CategoryName, pew.JoiningDate, ed.d_date, gs.emp_EPF, gs.emp_FPF, ped.period_code, tc.ot_hrs, pin.ot_value, pin.ot_Amt, pbr.Address_Line1, pbr.Address_Line2, pbr.City, pbr.ZipCode
+          FROM Group_Settings gs 
+          JOIN Employee_Group eg ON gs.groupid = eg.groupid 
+          JOIN paym_Employee pe ON eg.employee_code = pe.EmployeeCode 
+          JOIN paym_Company pc ON pe.pn_CompanyID = pc.pn_CompanyID 
+          JOIN paym_Designation pd on pe.pn_CompanyID = pd.pn_CompanyID and pe.pn_BranchID = pd.BranchID 
+          JOIN paym_Department pde on pe.pn_CompanyID = pde.pn_CompanyID and pe.pn_BranchID = pde.pn_BranchID 
+          JOIN paym_Grade pg on pe.pn_CompanyID = pg.pn_CompanyID and pe.pn_BranchID = pg.BranchID 
+          JOIN paym_Category pca on pe.pn_CompanyID = pca.pn_CompanyID and pe.pn_BranchID = pca.BranchID 
+          JOIN paym_Employee_WorkDetails pew on pe.pn_EmployeeID = pew.pn_EmployeeID 
+          JOIN earn_deduct ed on pe.pn_EmployeeID = ed.pn_EmployeeID 
+          JOIN paym_Emp_Deduction ped on pe.pn_EmployeeID =ped.pn_EmployeeID 
+          JOIN time_card tc on pe.EmployeeCode = tc.emp_code 
+          JOIN PayInput pin on pe.pn_EmployeeID = pin.pn_EmployeeID 
+          JOIN paym_Branch pbr on pe.pn_CompanyID = pbr.pn_CompanyID and pe.pn_BranchID = pbr.pn_BranchID 
+          WHERE gs.groupid = ${group.groupid};`;
+    
+          const query2 = `INSERT INTO shift_month (pn_CompanyID, pn_BranchID, pn_EmployeeCode, pn_EmployeeName, monthyear, date, shift_Code)
+          SELECT 
+              pe.pn_CompanyID,
+              pe.pn_BranchID,
+              eg.employee_code,
+              pe.Employee_Full_Name,
+              FORMAT(GETDATE(), 'MMyyyy') AS monthyear,
+              GETDATE() AS date,
+              gs.shift_code
+          FROM 
+              Group_Settings gs
+          JOIN 
+              Employee_Group eg ON gs.groupid = eg.groupid
+          JOIN 
+              paym_Employee pe ON eg.employee_code = pe.EmployeeCode
+          WHERE 
+              gs.groupid = ${group.groupid};`;
+    
+          const query3 = `INSERT INTO leaveallocation_master (pn_CompanyID, pn_BranchID, pn_EmployeeID, pn_leaveID, Medical, Official, Casual, personnel, maternity, Earned, Yearend)
+          SELECT 
+              pe.pn_CompanyID,
+              pe.pn_BranchID,
+              pe.pn_EmployeeID,
+              pl.pn_leaveID,
+              gs.medical,
+              gs.official,
+              gs.casual,
+              gs.personnel,
+              gs.maternity,
+              gs.Earned,
+              YEAR(ye.StartDate)
+          FROM 
+              Group_Settings gs
+          JOIN 
+              employee_group eg ON gs.groupid = eg.groupid
+          JOIN 
+              paym_Employee pe ON eg.employee_code = pe.EmployeeCode
+          JOIN 
+              paym_leave pl ON pe.pn_CompanyID = pl.pn_CompanyID and pe.pn_BranchID = pl.pn_BranchID
+          JOIN 
+              Yearend ye ON pe.pn_CompanyID = ye.pn_CompanyID and pe.pn_BranchID = ye.pn_BranchID
+          WHERE 
+              gs.groupid = ${group.groupid};`;
+    
+          Promise.all([
+            postRequest(ServerConfig.url, SAVE, { query: query1 }),
+            postRequest(ServerConfig.url, SAVE, { query: query2 }),
+            postRequest(ServerConfig.url, SAVE, { query: query3 })
+          ])
+          .then(([response1, response2, response3]) => {
+            if (response1.status === 200 && response2.status === 200 && response3.status === 200) { 
+              alert(`Data saved successfully for group ${group.groupid}!`);
+            } else {
+              alert(`Failed to save data for group ${group.groupid}.`);
+            }
+          })
+          .catch(error => {
+            alert(`An error occurred for group ${group.groupid}: ` + error.message);
+          });
+        }
+      });
+    };
+    
+    
+    
 
   return (
     <div>
@@ -1123,8 +1219,9 @@ function AddInfos() {
         <Grid container spacing={1} paddingTop={'10px'}>
             
             <Grid item xs ={12} align="right" >
-              <Button style={margin}  variant='outlined' color='primary' >Reset</Button>
-              <Button variant='contained' color='primary'onClick={handlesave} >SAVE</Button>
+            <Button variant='contained' style={margin} color='primary'onClick={handlesave} >SAVE</Button>
+            <Button   variant='outlined' color='primary' onClick={handlegroupsave}>Process</Button>
+  
             </Grid>
             </Grid>
 
