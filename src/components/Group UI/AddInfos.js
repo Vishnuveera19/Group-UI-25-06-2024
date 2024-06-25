@@ -58,8 +58,8 @@ function AddInfos() {
   const [value9, setValue9] = useState("");
   const [allowance10, setAllowance10] = useState("");
   const [value10, setValue10] = useState("");
-  const [deduction1, setDeduction1] = useState("");
-  const [valueA1, setValueA1] = useState("");
+  const [deduction1, setDeduction1] = useState("ESI EMP");
+  const [valueA1, setValueA1] = useState(0.75);
   const [deduction2, setDeduction2] = useState("");
   const [valueA2, setValueA2] = useState("");
   const [deduction3, setDeduction3] = useState("");
@@ -107,7 +107,7 @@ function AddInfos() {
     }, []);
 
     const handlesave = () => {
-      const query = `INSERT INTO [dbo].[Group_Settings]([groupid],[emp_PF],[emp_EPF],[emp_FPF],[ESI_EMP],[ESI_EPR],[Ded_Amount],[Earned_Amount],[Gross_salary],[Basic_salary],[Net_salary],[vpfamount],[shift_code],[Allowance1],[Value1],[Allowance2],[value2],[Allowance3],[Value3],[Allowance4],[Value4],[Allowance5],[Value5],[Allowance6],[Value6],[Allowance7],[Value7],[Allowance8],[Value8],[Allowance9],[Value9],[Allowance10],[Value10],[Deduction1],[valueA1],[Deduction2],[valueA2],[Deduction3],[valueA3],[Deduction4],[valueA4],[Deduction5],[valueA5],[Deduction6],[valueA6],[Deduction7],[valueA7],[Deduction8],[valueA8],[Deduction9],[valueA9],[Deduction10],[valueA10],[medical],[official],[casual],[personnel],[maternity],[Earned],[Admin_Charges],[NetPay],[Earned_Basic],[max_amount]) VALUES(${grpid},${emppf},${empEPF},${empFPF},${esiEmp},${esiEpr},${dedamount},${earnedamount},${grosssalary},${basicsalary},${netSalary},${vpfAmount},'${shiftcode}','${allowance1}',${value1},'${allowance2}',${value2},'${allowance3}',${value3},'${allowance4}',${value4},'${allowance5}',${value5},'${allowance6}',${value6},'${allowance7}',${value7},'${allowance8}',${value8},'${allowance9}',${value9},'${allowance10}',${value10},'${deduction1}',${valueA1},'${deduction2}',${valueA2},'${deduction3}',${valueA3},'${deduction4}',${valueA4},'${deduction5}',${valueA5},'${deduction6}',${valueA6},'${deduction7}',${valueA7},'${deduction8}',${valueA8},'${deduction9}',${valueA9},'${deduction10}',${valueA10},${medical},${official},${casual},'${personnel}','${maternity}','${earned}',${admincharges},${netPay},${earnedBasic},${maxAmount})`;
+      const query = `INSERT INTO [dbo].[Group_Settings]([groupid],[emp_EPF],[emp_FPF],[Ded_Amount],[Earned_Amount],[Gross_salary],[Basic_salary],[Net_salary],[vpfamount],[shift_code],[Allowance1],[Value1],[Allowance2],[value2],[Allowance3],[Value3],[Allowance4],[Value4],[Allowance5],[Value5],[Allowance6],[Value6],[Allowance7],[Value7],[Allowance8],[Value8],[Allowance9],[Value9],[Allowance10],[Value10],[Deduction1],[valueA1],[Deduction2],[valueA2],[Deduction3],[valueA3],[Deduction4],[valueA4],[Deduction5],[valueA5],[Deduction6],[valueA6],[Deduction7],[valueA7],[Deduction8],[valueA8],[Deduction9],[valueA9],[Deduction10],[valueA10],[medical],[official],[casual],[personnel],[maternity],[Earned],[Admin_Charges],[NetPay],[Earned_Basic],[max_amount],[emp_PF]) VALUES(${grpid},${empEPF},${empFPF},${dedamount},${earnedamount},${grosssalary},${basicsalary},${netSalary},${vpfAmount},'${shiftcode}','${allowance1}',${value1},'${allowance2}',${value2},'${allowance3}',${value3},'${allowance4}',${value4},'${allowance5}',${value5},'${allowance6}',${value6},'${allowance7}',${value7},'${allowance8}',${value8},'${allowance9}',${value9},'${allowance10}',${value10},'${deduction1}',${valueA1},'${deduction2}',${valueA2},'${deduction3}',${valueA3},'${deduction4}',${valueA4},'${deduction5}',${valueA5},'${deduction6}',${valueA6},'${deduction7}',${valueA7},'${deduction8}',${valueA8},'${deduction9}',${valueA9},'${deduction10}',${valueA10},${medical},${official},${casual},'${personnel}','${maternity}','${earned}',${admincharges},${netPay},${earnedBasic},${maxAmount},${emppf})`;
     
       postRequest(ServerConfig.url, SAVE, { query })
         .then(response => {
@@ -134,17 +134,18 @@ function AddInfos() {
           FROM Group_Settings gs 
           JOIN Employee_Group eg ON gs.groupid = eg.groupid 
           JOIN paym_Employee pe ON eg.employee_code = pe.EmployeeCode 
-          JOIN paym_Company pc ON pe.pn_CompanyID = pc.pn_CompanyID 
-          JOIN paym_Designation pd on pe.pn_CompanyID = pd.pn_CompanyID and pe.pn_BranchID = pd.BranchID 
-          JOIN paym_Department pde on pe.pn_CompanyID = pde.pn_CompanyID and pe.pn_BranchID = pde.pn_BranchID 
-          JOIN paym_Grade pg on pe.pn_CompanyID = pg.pn_CompanyID and pe.pn_BranchID = pg.BranchID 
-          JOIN paym_Category pca on pe.pn_CompanyID = pca.pn_CompanyID and pe.pn_BranchID = pca.BranchID 
+		  JOIN paym_employee_profile1 pep ON pe.pn_EmployeeID = pep.pn_EmployeeID
+          JOIN paym_Company pc ON pe.pn_CompanyID = pc.pn_CompanyID and pep.pn_CompanyID = pc.pn_CompanyID
+          JOIN paym_Designation pd on pe.pn_CompanyID = pd.pn_CompanyID and pe.pn_BranchID = pd.BranchID  and pep.pn_DesingnationId = pd.pn_DesignationID
+          JOIN paym_Department pde on pe.pn_CompanyID = pde.pn_CompanyID and pe.pn_BranchID = pde.pn_BranchID and pep.pn_DepartmentId = pde.pn_DepartmentID
+          JOIN paym_Grade pg on pe.pn_CompanyID = pg.pn_CompanyID and pe.pn_BranchID = pg.BranchID and pep.pn_GradeId =pg.pn_GradeID
+          JOIN paym_Category pca on pe.pn_CompanyID = pca.pn_CompanyID and pe.pn_BranchID = pca.BranchID and pep.pn_CategoryId = pca.pn_CategoryID
           JOIN paym_Employee_WorkDetails pew on pe.pn_EmployeeID = pew.pn_EmployeeID 
           JOIN earn_deduct ed on pe.pn_EmployeeID = ed.pn_EmployeeID 
           JOIN paym_Emp_Deduction ped on pe.pn_EmployeeID =ped.pn_EmployeeID 
           JOIN time_card tc on pe.EmployeeCode = tc.emp_code 
           JOIN PayInput pin on pe.pn_EmployeeID = pin.pn_EmployeeID 
-          JOIN paym_Branch pbr on pe.pn_CompanyID = pbr.pn_CompanyID and pe.pn_BranchID = pbr.pn_BranchID 
+          JOIN paym_Branch pbr on pe.pn_CompanyID = pbr.pn_CompanyID and pe.pn_BranchID = pbr.pn_BranchID and pep.pn_BranchID = pbr.pn_BranchID
           WHERE gs.groupid = ${group.groupid};`;
     
           const query2 = `INSERT INTO shift_month (pn_CompanyID, pn_BranchID, pn_EmployeeCode, pn_EmployeeName, monthyear, date, shift_Code)
@@ -165,7 +166,7 @@ function AddInfos() {
           WHERE 
               gs.groupid = ${group.groupid};`;
     
-          const query3 = `INSERT INTO leaveallocation_master (pn_CompanyID, pn_BranchID, pn_EmployeeID, pn_leaveID, Medical, Official, Casual, personnel, maternity, Earned, Yearend)
+          const query3 = ` INSERT INTO leaveallocation_master (pn_CompanyID, pn_BranchID, pn_EmployeeID, pn_leaveID, Medical, Official, Casual, personnel, maternity, Earned, Yearend)
           SELECT 
               pe.pn_CompanyID,
               pe.pn_BranchID,
@@ -184,10 +185,15 @@ function AddInfos() {
               employee_group eg ON gs.groupid = eg.groupid
           JOIN 
               paym_Employee pe ON eg.employee_code = pe.EmployeeCode
+	      JOIN
+			  paym_employee_profile1 pep on pe.pn_EmployeeID = pep.pn_EmployeeID
+			  JOIN
+			  leave_settlement ls ON pe.pn_EmployeeID = ls.pn_EmployeeID
           JOIN 
-              paym_leave pl ON pe.pn_CompanyID = pl.pn_CompanyID and pe.pn_BranchID = pl.pn_BranchID
+              paym_leave pl ON  ls.pn_CompanyID = pl.pn_CompanyID and ls.pn_BranchID = pl.pn_CompanyID and ls.pn_LeaveID = pl.pn_leaveID
           JOIN 
-              Yearend ye ON pe.pn_CompanyID = ye.pn_CompanyID and pe.pn_BranchID = ye.pn_BranchID
+              Yearend ye ON pe.pn_CompanyID = ye.pn_CompanyID and pe.pn_BranchID = ye.pn_BranchID and pep.pn_BranchID = ye.pn_BranchID
+
           WHERE 
               gs.groupid = ${group.groupid};`;
     
@@ -209,6 +215,7 @@ function AddInfos() {
         }
       });
     };
+    
     
     
     
@@ -520,32 +527,7 @@ function AddInfos() {
             </FormControl >
             </Grid>
 
-            <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="Esiemp"
-                      label="Esiemp"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setEsiemp(e.target.value)}
-                    />
-                  </FormControl>
-                </Grid>
-
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="Esiepr"
-                      label="Esiepr"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setEsiepr(e.target.value)}
-                    />
-                  </FormControl>
-                </Grid>
-
+            
                 <Grid xs={12} sm={6} item>
                   <FormControl fullWidth>
                     <TextField
@@ -934,32 +916,38 @@ function AddInfos() {
                 </Grid>
 
 
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="Deduction1"
-                      label="Deduction1"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setDeduction1(e.target.value)}
-                    />
-                  </FormControl>
-                </Grid>
+            < Grid xs={12} sm={6} item>
+  <FormControl fullWidth>
+    <TextField
+      name="Deduction1"
+      label="Deduction1"
+      variant="outlined"
+      fullWidth
+      required
+      value={deduction1}
+      InputProps={{
+        readOnly: true,
+      }}
+    />
+  </FormControl>
+</Grid>
 
 
-                <Grid xs={12} sm={6} item>
-                  <FormControl fullWidth>
-                    <TextField
-                      name="ValueA1"
-                      label="ValueA1"
-                      variant="outlined"
-                      fullWidth
-                      required
-                      onChange={(e) => setValueA1(e.target.value)}
-                    />
-                  </FormControl>
-                </Grid>
+<Grid item xs={12} sm={6}>
+      <FormControl fullWidth>
+        <TextField
+          name="ValueA1"
+          label="ValueA1"
+          variant="outlined"
+          fullWidth
+          required
+          value={valueA1} 
+          InputProps={{
+            readOnly: true, 
+          }}
+        />
+      </FormControl>
+    </Grid>
 
                 <Grid xs={12} sm={6} item>
                   <FormControl fullWidth>

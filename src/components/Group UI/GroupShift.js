@@ -82,7 +82,7 @@ function GroupShift() {
             </Typography>
             <Grid item xs={12} sm={6} >
             <FormControl fullWidth>
-                                            <InputLabel shrink>Group ID</InputLabel>
+                                            <InputLabel shrink>Group Name</InputLabel>
                                             <select
                                                 name="GroupId"
                                                 onChange={(e) => {
